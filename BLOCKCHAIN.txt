@@ -1,0 +1,249 @@
+// SPDX-License-Identifier: MIT
+// License identifier for the code
+
+pragma solidity >=0.8.2 <0.9.0;
+// Specifies that the Solidity version must be between 0.8.2 (inclusive) and 0.9.0 (exclusive)
+
+// Contract demonstrating various data types, state variables, arithmetic operations, enums, mappings, structs, and more
+contract CombinedContract {
+    
+    // State Variables (permanently stored in contract storage)
+    int256 public value = -100; // Signed integer, publicly accessible
+    uint256 public number = 10; // Unsigned integer, publicly accessible
+    bool public isTrue = true; // Boolean, publicly accessible
+    string public name = "Hello World"; // String, publicly accessible
+    bytes public data = "hello-world"; // Byte sequence, publicly accessible
+    address public contractAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4; // Ethereum address, publicly accessible
+
+    // Enum to represent student status
+    enum Status {failed, average, passed} // Enum type definition
+    Status public s; // Variable of type Status, publicly accessible
+
+    // Struct to represent a Student
+    struct Student {
+        string name;
+        uint regNo;
+        bool isPresent;
+    }
+    Student public singleStudent; // Single student struct, publicly accessible
+    Student[] public studentsArray; // Array of student structs, publicly accessible
+
+    // Struct to represent a Book
+    struct Book {
+        uint bookId;
+        address issuer;
+        bool isIssued;
+        uint issuedAt;
+    }
+    Book public book; // Single book struct, publicly accessible
+
+    // Mappings to store balances and counters
+    mapping(address => uint256) public balances; // Mapping from address to balance, publicly accessible
+    mapping(address => uint256) public depositTimestamp; // Mapping from address to deposit timestamp, publicly accessible
+    mapping(address => uint256) public counter; // Mapping from address to counter, publicly accessible
+    uint256 public count = 0; // Counter, publicly accessible
+    address public owner = msg.sender; // Owner of the contract, initialized to the address deploying the contract
+
+    // Event to log increment action
+    event Increment(address wallet, uint256 value, string message); // Event definition
+
+    // Constructor to initialize value before deployment
+    constructor(uint256 _b) {
+        number = _b; // Initialize number with the value provided during contract deployment
+    }
+
+    // Modifiers to restrict function access
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _; // Continue execution
+    }
+
+    // Function to store a number
+    function storeValue(uint256 num) public {
+        number = num; // Set the state variable `number` to `num`
+    }
+
+    // Function to retrieve the stored number
+    function getNumber() public view returns (uint256) {
+        return number; // Return the stored number
+    }
+
+    // Function to retrieve the signed integer
+    function getInt() public view returns (int256) {
+        return value; // Return the signed integer value
+    }
+
+    // Function to retrieve the boolean value
+    function getBool() public view returns (bool) {
+        return isTrue; // Return the boolean value
+    }
+
+    // Function to retrieve the string value
+    function getString() public view returns (string memory) {
+        return name; // Return the string value
+    }
+
+    // Function to retrieve the byte sequence
+    function getBytes() public view returns (bytes memory) {
+        return data; // Return the byte sequence
+    }
+
+    // Function to retrieve the contract address
+    function getAddress() public view returns (address) {
+        return contractAddress; // Return the contract address
+    }
+
+    // Function to retrieve the balance of the contract address
+    function getContractBalance() public view returns (uint256) {
+        return contractAddress.balance; // Return the balance of the contract address
+    }
+
+    // Function to set the student details
+    function setStudent(string memory _name, uint _regNo, bool _isPresent) public {
+        singleStudent = Student(_name, _regNo, _isPresent); // Set the single student details
+    }
+
+    // Function to get the single student details
+    function getStudent() public view returns (Student memory) {
+        return singleStudent; // Return the single student details
+    }
+
+    // Function to add a student to the array
+    function addStudent(string memory _name, uint _regNo, bool _isPresent) public {
+        studentsArray.push(Student(_name, _regNo, _isPresent)); // Add a student to the array
+    }
+
+    // Function to get the array of students
+    function getStudentsArray() public view returns (Student[] memory) {
+        return studentsArray; // Return the array of students
+    }
+
+    // Function to issue a book
+    function issueBook(uint _bookId) public {
+        book = Book(_bookId, msg.sender, true, block.timestamp); // Issue a book with the given ID and set the current timestamp
+    }
+
+    // Function to get the book details
+    function getBook() public view returns (Book memory) {
+        return book; // Return the book details
+    }
+
+    // Function to check if a fine is applicable
+    function isFineApplicable() public view returns (bool) {
+        return block.timestamp - book.issuedAt > 7 days; // Return true if more than 7 days have passed since the book was issued
+    }
+
+    // Function to set balance
+    function setBalance(uint value) public {
+        balances[msg.sender] = value; // Set the balance of the sender
+    }
+
+    // Function to get balance of an address
+    function getBalance(address addr) public view returns (uint) {
+        return balances[addr]; // Return the balance of the given address
+    }
+
+    // Function to add balance with payable
+    function addBalance() public payable {
+        balances[msg.sender] += msg.value; // Add the sent value to the sender's balance
+        counter[msg.sender] = ++count; // Increment the counter for the sender
+    }
+
+    // Function to get counter value for an address (only owner can call)
+    function getCounter(address addr) public view onlyOwner returns (uint256) {
+        return counter[addr]; // Return the counter value for the given address
+    }
+
+    // Function to deposit amount
+    function deposit() public payable {
+        require(msg.value > 0, "Amount should be greater than 0");
+        balances[msg.sender] += msg.value; // Add the sent value to the sender's balance
+        depositTimestamp[msg.sender] = block.timestamp; // Record the deposit timestamp
+    }
+
+    // Function to withdraw amount
+    function withdraw(uint256 amount) public {
+        require(amount > 0, "Amount should be greater than 0");
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        require(block.timestamp >= depositTimestamp[msg.sender] + 5, "Funds are locked");
+
+        balances[msg.sender] -= amount; // Deduct the amount from the sender's balance
+        payable(msg.sender).transfer(amount); // Transfer the amount to the sender
+    }
+
+    // Function to transfer amount
+    function transfer(address receiver, uint256 amount) public {
+        require(amount > 0, "Amount should be greater than 0");
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+
+        balances[msg.sender] -= amount; // Deduct the amount from the sender's balance
+        balances[receiver] += amount; // Add the amount to the receiver's balance
+    }
+
+    // Function to print a string
+    function printString() public pure returns (string memory) {
+        return "Hello World"; // Return the string "Hello World"
+    }
+
+    // Function to calculate modulus
+    function mod(uint256 a, uint256 b) public pure returns (uint256) {
+        return a % b; // Return the modulus of a and b
+    }
+
+    // Function to compare integers
+    function compareInt(int256 a, int256 b) public pure returns (bool) {
+        return a == b; // Return true if a and b are equal
+    }
+
+    // Function with multiple return values
+    function multipleReturns(int x, int y, int z) public pure returns (int, int, int) {
+        return (x, y, z); // Return the values x, y, and z
+    }
+
+    // Function to create and return an array
+    function printArray() public pure returns (uint256[] memory) {
+        uint256[] memory arr = new uint256[](5); // Create an array of size 5
+        for (uint256 i = 0; i < 5; i++) {
+            arr[i] = i; // Assign values to the array
+        }
+        return arr; // Return the array
+    }
+
+    // Function to accept ethers
+    function acceptEthers() public payable {
+        address _owner = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+        payable(_owner).transfer(address(this).balance); // Transfer the ethers to the owner
+    }
+
+    // Function to withdraw ethers
+    function withdrawEthers() public {
+        address ownerAddress = payable(msg.sender);
+        payable(ownerAddress).transfer(address(this).balance); // Transfer the balance to the sender
+    }
+
+    // Function to retrieve contract balance
+    function getContractBalance() public view returns (uint256) {
+        return address(this).balance; // Return the balance of the contract
+    }
+
+    // Function to set the status
+    function setStatus(Status _status) public {
+        s = _status; // Set the status
+    }
+
+    // Function to get the status
+    function getStatus() public view returns (Status) {
+        return s; // Return the status
+    }
+
+    // Function to increment a value and emit an event
+    function increment() public {
+        number++; // Increment the number
+        emit Increment(msg.sender, number, "Incremented"); // Emit the increment event
+    }
+
+    // Fallback function to increment value
+    receive() external payable {
+        increment(); // Call the increment function
+    }
+}
