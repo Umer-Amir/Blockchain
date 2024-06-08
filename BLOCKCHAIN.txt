@@ -461,3 +461,131 @@ contract IdentityTheftPrevention {
 ```
 
 This smart contract provides functionalities for user registration, identity verification, updating identity information, and revoking identities to prevent identity theft. It includes detailed comments explaining each line of code for better understanding.
+
+
+
+
+
+
+
+
+
+
+
+
+### Explanation of Methods and Their Usage
+
+#### Admin
+- **Address of the Admin:**
+  ```solidity
+  address public admin;
+  ```
+  - **Reasoning:** The admin is the authority who can manage user registrations and updates. Having a specific admin address ensures that only authorized personnel can perform these sensitive operations, thus preventing unauthorized access and modifications.
+
+#### UserCount
+- **User Count:**
+  ```solidity
+  uint256 public userCount = 0;
+  ```
+  - **Reasoning:** This counter helps keep track of the total number of users registered in the system. It ensures each user gets a unique ID, which is crucial for maintaining distinct records and avoiding conflicts.
+
+#### Struct
+- **User Struct:**
+  ```solidity
+  struct User {
+      uint256 id;
+      bytes32 hashedIdentity;
+      bool isRevoked;
+  }
+  ```
+  - **Reasoning:** Structs are used to group related data together. Here, the User struct combines the unique ID, hashed identity information, and revocation status of a user into a single entity. This makes it easier to manage and access a user's information as a cohesive unit.
+
+#### Mapping
+- **Mappings:**
+  ```solidity
+  mapping(address => User) public users;
+  ```
+  - **Reasoning:** Mappings provide efficient storage and lookup capabilities. By mapping user addresses to their respective User structs, we can quickly access and manage user data based on their unique address.
+
+#### Events
+- **Events:**
+  ```solidity
+  event UserRegistered(address user, uint256 id, bytes32 hashedIdentity);
+  event IdentityUpdated(address user, bytes32 newHashedIdentity);
+  event IdentityRevoked(address user);
+  ```
+  - **Reasoning:** Events are used to log activities that occur within the contract. They provide a way to track changes and actions without storing additional state in the blockchain, which is more efficient and cost-effective. Events also make it easier to debug and monitor the contract's activity as they are recorded in the transaction logs.
+
+#### Modifiers
+- **Modifiers:**
+  ```solidity
+  modifier onlyAdmin() {
+      require(msg.sender == admin, "Only admin can perform this action");
+      _;
+  }
+  
+  modifier isRegistered(address user) {
+      require(users[user].id != 0, "User is not registered");
+      _;
+  }
+  ```
+  - **Reasoning:** Modifiers are used to add common checks or restrictions to functions. The `onlyAdmin` modifier ensures that only the admin can execute certain functions, enhancing security. The `isRegistered` modifier checks if a user is already registered, preventing errors and ensuring functions are called in the correct context.
+
+#### Constructor
+- **Constructor:**
+  ```solidity
+  constructor() {
+      admin = msg.sender;
+  }
+  ```
+  - **Reasoning:** The constructor sets the initial state of the contract. By assigning the deployer's address to the `admin` variable, we ensure that the person who deploys the contract has initial control over it.
+
+#### Functions
+- **Register User:**
+  ```solidity
+  function registerUser(address user, bytes32 hashedIdentity) public onlyAdmin {
+      require(users[user].id == 0, "User is already registered");
+      userCount++;
+      users[user] = User(userCount, hashedIdentity, false);
+      emit UserRegistered(user, userCount, hashedIdentity);
+  }
+  ```
+  - **Reasoning:** This function allows the admin to register new users. It ensures the user is not already registered, assigns a unique ID, and emits an event for logging purposes. Emitting an event here helps track registrations without storing unnecessary data on-chain.
+
+- **Verify Identity:**
+  ```solidity
+  function verifyIdentity(address user, bytes32 hashedIdentity) public view isRegistered(user) returns (bool) {
+      require(!users[user].isRevoked, "Identity is revoked");
+      return users[user].hashedIdentity == hashedIdentity;
+  }
+  ```
+  - **Reasoning:** This function allows verification of a user's identity by comparing the provided hashed identity with the stored one. The `isRegistered` modifier ensures the user is registered, and the `require` statement checks if the identity is not revoked, providing a secure and reliable verification process.
+
+- **Update Identity:**
+  ```solidity
+  function updateIdentity(address user, bytes32 newHashedIdentity) public onlyAdmin isRegistered(user) {
+      users[user].hashedIdentity = newHashedIdentity;
+      emit IdentityUpdated(user, newHashedIdentity);
+  }
+  ```
+  - **Reasoning:** This function allows the admin to update a user's hashed identity. The `onlyAdmin` and `isRegistered` modifiers ensure that only the admin can update registered users' identities. Emitting an event here helps log the update for future reference.
+
+- **Revoke Identity:**
+  ```solidity
+  function revokeIdentity(address user) public onlyAdmin isRegistered(user) {
+      users[user].isRevoked = true;
+      emit IdentityRevoked(user);
+  }
+  ```
+  - **Reasoning:** This function allows the admin to revoke a user's identity in case of suspected theft. The `onlyAdmin` and `isRegistered` modifiers ensure that only the admin can revoke the identity of registered users. Emitting an event helps log the revocation action.
+
+- **Check Identity Revocation:**
+  ```solidity
+  function isIdentityRevoked(address user) public view isRegistered(user) returns (bool) {
+      return users[user].isRevoked;
+  }
+  ```
+  - **Reasoning:** This function checks if a user's identity is revoked. It uses the `isRegistered` modifier to ensure the user is registered and returns the revocation status. This function is useful for other contracts or external systems to verify the status of an identity.
+
+### Conclusion
+The smart contract is designed to provide a secure, efficient, and transparent way to prevent identity theft using blockchain technology. Each method and feature is carefully chosen to enhance security, ensure data integrity, and provide a reliable identity management system. Events are used extensively to log actions without storing unnecessary data on-chain, modifiers are used to enforce access control and state checks, and the overall structure ensures that only authorized actions can be performed by verified entities.
