@@ -247,3 +247,217 @@ contract CombinedContract {
         increment(); // Call the increment function
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Flow for Identity Theft Prevention Blockchain
+
+1. **User Registration:**
+   - Users register their identity on the blockchain.
+   - Each user is assigned a unique ID and their personal information is hashed and stored.
+   
+2. **Identity Verification:**
+   - When a user wants to verify their identity, they provide their details.
+   - The system hashes the provided details and compares them with the stored hash.
+   
+3. **Identity Update:**
+   - Users can update their identity information.
+   - The new information is hashed and updated in the blockchain.
+
+4. **Identity Revocation:**
+   - Users can revoke their identity in case of suspected theft.
+   - The revocation status is stored and can be checked during verification.
+
+5. **Admin Functions:**
+   - Admins can add/remove users and check the status of any identity.
+
+### Solidity Code for Identity Theft Prevention Blockchain
+
+```solidity
+// SPDX-License-Identifier: MIT
+// License identifier for the code
+
+pragma solidity >=0.8.2 <0.9.0;
+// Specifies that the Solidity version must be between 0.8.2 (inclusive) and 0.9.0 (exclusive)
+
+// Smart contract for identity theft prevention
+contract IdentityTheftPrevention {
+    address public admin; // Address of the admin
+    uint256 public userCount = 0; // Counter for the number of users
+
+    // Struct to represent a User
+    struct User {
+        uint256 id;
+        bytes32 hashedIdentity; // Hashed identity information
+        bool isRevoked; // Identity revocation status
+    }
+
+    // Mapping to store users by their address
+    mapping(address => User) public users;
+    
+    // Event to log user registration
+    event UserRegistered(address user, uint256 id, bytes32 hashedIdentity);
+    
+    // Event to log user identity update
+    event IdentityUpdated(address user, bytes32 newHashedIdentity);
+    
+    // Event to log identity revocation
+    event IdentityRevoked(address user);
+
+    // Modifier to restrict access to admin only
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can perform this action");
+        _;
+    }
+
+    // Modifier to check if user is registered
+    modifier isRegistered(address user) {
+        require(users[user].id != 0, "User is not registered");
+        _;
+    }
+
+    // Constructor to set the admin
+    constructor() {
+        admin = msg.sender; // Set the deployer as the admin
+    }
+
+    // Function to register a new user
+    function registerUser(address user, bytes32 hashedIdentity) public onlyAdmin {
+        require(users[user].id == 0, "User is already registered"); // Ensure the user is not already registered
+
+        userCount++; // Increment user count
+        users[user] = User(userCount, hashedIdentity, false); // Add new user to the mapping
+        
+        emit UserRegistered(user, userCount, hashedIdentity); // Emit UserRegistered event
+    }
+
+    // Function to verify user identity
+    function verifyIdentity(address user, bytes32 hashedIdentity) public view isRegistered(user) returns (bool) {
+        require(!users[user].isRevoked, "Identity is revoked"); // Ensure the identity is not revoked
+        return users[user].hashedIdentity == hashedIdentity; // Return true if the provided hash matches the stored hash
+    }
+
+    // Function to update user identity
+    function updateIdentity(address user, bytes32 newHashedIdentity) public onlyAdmin isRegistered(user) {
+        users[user].hashedIdentity = newHashedIdentity; // Update the user's hashed identity
+        
+        emit IdentityUpdated(user, newHashedIdentity); // Emit IdentityUpdated event
+    }
+
+    // Function to revoke user identity
+    function revokeIdentity(address user) public onlyAdmin isRegistered(user) {
+        users[user].isRevoked = true; // Set the user's identity as revoked
+        
+        emit IdentityRevoked(user); // Emit IdentityRevoked event
+    }
+
+    // Function to check if a user's identity is revoked
+    function isIdentityRevoked(address user) public view isRegistered(user) returns (bool) {
+        return users[user].isRevoked; // Return the revocation status
+    }
+}
+```
+
+### Explanation of the Code
+
+```solidity
+// SPDX-License-Identifier: MIT
+// License identifier for the code
+
+pragma solidity >=0.8.2 <0.9.0;
+// Specifies that the Solidity version must be between 0.8.2 (inclusive) and 0.9.0 (exclusive)
+
+// Smart contract for identity theft prevention
+contract IdentityTheftPrevention {
+    address public admin; // Address of the admin
+    uint256 public userCount = 0; // Counter for the number of users
+
+    // Struct to represent a User
+    struct User {
+        uint256 id; // Unique ID for the user
+        bytes32 hashedIdentity; // Hashed identity information
+        bool isRevoked; // Identity revocation status
+    }
+
+    // Mapping to store users by their address
+    mapping(address => User) public users;
+    
+    // Event to log user registration
+    event UserRegistered(address user, uint256 id, bytes32 hashedIdentity);
+    
+    // Event to log user identity update
+    event IdentityUpdated(address user, bytes32 newHashedIdentity);
+    
+    // Event to log identity revocation
+    event IdentityRevoked(address user);
+
+    // Modifier to restrict access to admin only
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can perform this action");
+        _;
+    }
+
+    // Modifier to check if user is registered
+    modifier isRegistered(address user) {
+        require(users[user].id != 0, "User is not registered");
+        _;
+    }
+
+    // Constructor to set the admin
+    constructor() {
+        admin = msg.sender; // Set the deployer as the admin
+    }
+
+    // Function to register a new user
+    function registerUser(address user, bytes32 hashedIdentity) public onlyAdmin {
+        require(users[user].id == 0, "User is already registered"); // Ensure the user is not already registered
+
+        userCount++; // Increment user count
+        users[user] = User(userCount, hashedIdentity, false); // Add new user to the mapping
+        
+        emit UserRegistered(user, userCount, hashedIdentity); // Emit UserRegistered event
+    }
+
+    // Function to verify user identity
+    function verifyIdentity(address user, bytes32 hashedIdentity) public view isRegistered(user) returns (bool) {
+        require(!users[user].isRevoked, "Identity is revoked"); // Ensure the identity is not revoked
+        return users[user].hashedIdentity == hashedIdentity; // Return true if the provided hash matches the stored hash
+    }
+
+    // Function to update user identity
+    function updateIdentity(address user, bytes32 newHashedIdentity) public onlyAdmin isRegistered(user) {
+        users[user].hashedIdentity = newHashedIdentity; // Update the user's hashed identity
+        
+        emit IdentityUpdated(user, newHashedIdentity); // Emit IdentityUpdated event
+    }
+
+    // Function to revoke user identity
+    function revokeIdentity(address user) public onlyAdmin isRegistered(user) {
+        users[user].isRevoked = true; // Set the user's identity as revoked
+        
+        emit IdentityRevoked(user); // Emit IdentityRevoked event
+    }
+
+    // Function to check if a user's identity is revoked
+    function isIdentityRevoked(address user) public view isRegistered(user) returns (bool) {
+        return users[user].isRevoked; // Return the revocation status
+    }
+}
+```
+
+This smart contract provides functionalities for user registration, identity verification, updating identity information, and revoking identities to prevent identity theft. It includes detailed comments explaining each line of code for better understanding.
